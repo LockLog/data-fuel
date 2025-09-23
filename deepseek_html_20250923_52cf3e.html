@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Combustible</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <style>
+        :root {
+            --primary: #3498db;
+            --primary-dark: #2980b9;
+            --secondary: #2ecc71;
+            --secondary-dark: #27ae60;
+            --danger: #e74c3c;
+            --danger-dark: #c0392b;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --gray: #6c757d;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        h1 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .description {
+            color: var(--gray);
+            font-size: 1.1rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 20px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background-color 0.3s;
+            text-align: center;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--secondary-dark);
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+        }
+
+        .btn-danger:hover {
+            background-color: var(--danger-dark);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-group .btn {
+            flex: 1;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--gray);
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .alert {
+            padding: 12px 15px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert-success {
+            background-color: rgba(46, 204, 113, 0.1);
+            color: var(--secondary-dark);
+            border: 1px solid var(--secondary);
+        }
+
+        .alert-error {
+            background-color: rgba(231, 76, 60, 0.1);
+            color: var(--danger-dark);
+            border: 1px solid var(--danger);
+        }
+
+        .records-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .records-table th, .records-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .records-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .records-table tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .tab {
+                border-bottom: none;
+                border-left: 3px solid transparent;
+            }
+            
+            .tab.active {
+                border-left-color: var(--primary);
+                border-bottom: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Registro de Combustible</h1>
+            <p class="description">Sistema para registrar el consumo de combustible y kilometraje de vehículos</p>
+        </header>
+
+        <div class="card">
+            <div class="tabs">
+                <button class="tab active" data-tab="fuel">Registro de Combustible</button>
+                <button class="tab" data-tab="mileage">Solo Kilometraje</button>
+                <button class="tab" data-tab="records">Historial</button>
+            </div>
+
+            <!-- Alerts -->
+            <div id="successAlert" class="alert alert-success"></div>
+            <div id="errorAlert" class="alert alert-error"></div>
+
+            <!-- Fuel Registration Tab -->
+            <div id="fuelTab" class="tab-content active">
+                <form id="fuelForm">
+                    <div class="form-group">
+                        <label for="fuelDate">Fecha</label>
+                        <input type="date" id="fuelDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="liters">Litros</label>
+                        <input type="number" id="liters" step="0.01" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="value">Valor ($)</label>
+                        <input type="number" id="value" step="0.01" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="fuelMileage">Kilometraje</label>
+                        <input type="number" id="fuelMileage" min="0" required>
+                    </div>
+                    <div class="btn-group">
+                        <button type="submit" class="btn btn-secondary">Registrar Combustible</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Mileage Only Tab -->
+            <div id="mileageTab" class="tab-content">
+                <form id="mileageForm">
+                    <div class="form-group">
+                        <label for="mileageDate">Fecha</label>
+                        <input type="date" id="mileageDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="mileageOnly">Kilometraje</label>
+                        <input type="number" id="mileageOnly" min="0" required>
+                    </div>
+                    <div class="btn-group">
+                        <button type="submit" class="btn">Registrar Kilometraje</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Records Tab -->
+            <div id="recordsTab" class="tab-content">
+                <div class="btn-group">
+                    <button id="refreshBtn" class="btn">Actualizar Historial</button>
+                </div>
+                <table class="records-table">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Litros</th>
+                            <th>Valor</th>
+                            <th>Kilometraje</th>
+                            <th>Diferencia KM</th>
+                            <th>Tipo</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recordsBody">
+                        <!-- Los registros se cargarán aquí -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuración de Supabase
+        const SUPABASE_URL = 'https://tu-proyecto.supabase.co'; // Reemplaza con tu URL de Supabase
+        const SUPABASE_ANON_KEY = 'tu-clave-anon-publica'; // Reemplaza con tu clave anónima de Supabase
+        
+        // Inicializar Supabase
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // Elementos del DOM
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const fuelForm = document.getElementById('fuelForm');
+        const mileageForm = document.getElementById('mileageForm');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const recordsBody = document.getElementById('recordsBody');
+        const successAlert = document.getElementById('successAlert');
+        const errorAlert = document.getElementById('errorAlert');
+        
+        // Establecer fecha actual por defecto
+        document.getElementById('fuelDate').valueAsDate = new Date();
+        document.getElementById('mileageDate').valueAsDate = new Date();
+        
+        // Manejo de pestañas
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.getAttribute('data-tab');
+                
+                // Remover clase activa de todas las pestañas y contenidos
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+                
+                // Agregar clase activa a la pestaña y contenido seleccionados
+                tab.classList.add('active');
+                document.getElementById(`${tabId}Tab`).classList.add('active');
+            });
+        });
+        
+        // Función para mostrar alertas
+        function showAlert(alertElement, message) {
+            alertElement.textContent = message;
+            alertElement.style.display = 'block';
+            
+            setTimeout(() => {
+                alertElement.style.display = 'none';
+            }, 5000);
+        }
+        
+        // Función para obtener el último registro de kilometraje
+        async function getLastMileage() {
+            try {
+                const { data, error } = await supabase
+                    .from('fuel_records')
+                    .select('mileage')
+                    .order('created_at', { ascending: false })
+                    .limit(1);
+                
+                if (error) throw error;
+                
+                return data.length > 0 ? data[0].mileage : null;
+            } catch (error) {
+                console.error('Error obteniendo último kilometraje:', error);
+                showAlert(errorAlert, 'Error al obtener el último kilometraje');
+                return null;
+            }
+        }
+        
+        // Función para calcular la diferencia de kilometraje
+        function calculateMileageDifference(currentMileage, lastMileage) {
+            if (!lastMileage) return 0;
+            return currentMileage - lastMileage;
+        }
+        
+        // Manejo del formulario de combustible
+        fuelForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const date = document.getElementById('fuelDate').value;
+            const liters = parseFloat(document.getElementById('liters').value);
+            const value = parseFloat(document.getElementById('value').value);
+            const mileage = parseInt(document.getElementById('fuelMileage').value);
+            
+            // Validaciones básicas
+            if (!date || isNaN(liters) || isNaN(value) || isNaN(mileage)) {
+                showAlert(errorAlert, 'Por favor, complete todos los campos correctamente');
+                return;
+            }
+            
+            // Obtener el último kilometraje
+            const lastMileage = await getLastMileage();
+            const mileageDifference = calculateMileageDifference(mileage, lastMileage);
+            
+            try {
+                // Insertar registro en Supabase
+                const { data, error } = await supabase
+                    .from('fuel_records')
+                    .insert([
+                        {
+                            date: date,
+                            liters: liters,
+                            value: value,
+                            mileage: mileage,
+                            mileage_difference: mileageDifference,
+                            record_type: 'fuel'
+                        }
+                    ]);
+                
+                if (error) throw error;
+                
+                // Mostrar mensaje de éxito
+                showAlert(successAlert, 'Registro de combustible guardado exitosamente');
+                
+                // Limpiar formulario
+                fuelForm.reset();
+                document.getElementById('fuelDate').valueAsDate = new Date();
+                
+            } catch (error) {
+                console.error('Error guardando registro de combustible:', error);
+                showAlert(errorAlert, 'Error al guardar el registro de combustible');
+            }
+        });
+        
+        // Manejo del formulario de solo kilometraje
+        mileageForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const date = document.getElementById('mileageDate').value;
+            const mileage = parseInt(document.getElementById('mileageOnly').value);
+            
+            // Validaciones básicas
+            if (!date || isNaN(mileage)) {
+                showAlert(errorAlert, 'Por favor, complete todos los campos correctamente');
+                return;
+            }
+            
+            // Obtener el último kilometraje
+            const lastMileage = await getLastMileage();
+            const mileageDifference = calculateMileageDifference(mileage, lastMileage);
+            
+            try {
+                // Insertar registro en Supabase
+                const { data, error } = await supabase
+                    .from('fuel_records')
+                    .insert([
+                        {
+                            date: date,
+                            liters: null,
+                            value: null,
+                            mileage: mileage,
+                            mileage_difference: mileageDifference,
+                            record_type: 'mileage_only'
+                        }
+                    ]);
+                
+                if (error) throw error;
+                
+                // Mostrar mensaje de éxito
+                showAlert(successAlert, 'Registro de kilometraje guardado exitosamente');
+                
+                // Limpiar formulario
+                mileageForm.reset();
+                document.getElementById('mileageDate').valueAsDate = new Date();
+                
+            } catch (error) {
+                console.error('Error guardando registro de kilometraje:', error);
+                showAlert(errorAlert, 'Error al guardar el registro de kilometraje');
+            }
+        });
+        
+        // Función para cargar los registros
+        async function loadRecords() {
+            try {
+                const { data, error } = await supabase
+                    .from('fuel_records')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+                
+                if (error) throw error;
+                
+                // Limpiar tabla
+                recordsBody.innerHTML = '';
+                
+                if (data.length === 0) {
+                    recordsBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No hay registros disponibles</td></tr>';
+                    return;
+                }
+                
+                // Llenar tabla con los registros
+                data.forEach(record => {
+                    const row = document.createElement('tr');
+                    
+                    // Formatear fecha
+                    const date = new Date(record.date);
+                    const formattedDate = date.toLocaleDateString('es-ES');
+                    
+                    // Determinar tipo de registro
+                    const recordType = record.record_type === 'fuel' ? 'Combustible' : 'Kilometraje';
+                    
+                    row.innerHTML = `
+                        <td>${formattedDate}</td>
+                        <td>${record.liters ? record.liters.toFixed(2) : '-'}</td>
+                        <td>${record.value ? '$' + record.value.toFixed(2) : '-'}</td>
+                        <td>${record.mileage}</td>
+                        <td>${record.mileage_difference}</td>
+                        <td>${recordType}</td>
+                    `;
+                    
+                    recordsBody.appendChild(row);
+                });
+                
+            } catch (error) {
+                console.error('Error cargando registros:', error);
+                showAlert(errorAlert, 'Error al cargar los registros');
+            }
+        }
+        
+        // Cargar registros al hacer clic en el botón de actualizar
+        refreshBtn.addEventListener('click', loadRecords);
+        
+        // Cargar registros cuando se muestra la pestaña de historial
+        document.querySelector('[data-tab="records"]').addEventListener('click', loadRecords);
+        
+        // Inicializar la aplicación
+        console.log('Formulario de registro de combustible inicializado');
+    </script>
+</body>
+</html>

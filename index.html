@@ -460,7 +460,7 @@
             const lastMileage = await getLastMileage();
             const mileageDifference = calculateMileageDifference(mileage, lastMileage);
             
-            try {
+            //try {
                 // Insertar registro en Supabase
                 /*const { data, error } = await supabase
                     .from('fuel_records')
@@ -475,7 +475,7 @@
                         }
                     ]);*/
                 
-                if (error) throw error;
+                //if (error) throw error;
                 
                 // Mostrar mensaje de éxito
                 showAlert(successAlert, 'Registro de kilometraje guardado exitosamente ' + mileageDifference);
@@ -484,10 +484,10 @@
                 mileageForm.reset();
                 document.getElementById('mileageDate').valueAsDate = new Date();
                 
-            } catch (error) {
+          /*  } catch (error) {
                 console.error('Error guardando registro de kilometraje:', error);
                 showAlert(errorAlert, 'Error al guardar el registro de kilometraje');
-            }
+            } */
         });
         
         // Función para cargar los registros

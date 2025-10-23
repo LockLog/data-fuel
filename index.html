@@ -462,7 +462,7 @@
             
             try {
                 // Insertar registro en Supabase
-                const { data, error } = await supabase
+                /*const { data, error } = await supabase
                     .from('fuel_records')
                     .insert([
                         {
@@ -473,12 +473,12 @@
                             mileage_difference: mileageDifference,
                             record_type: 'mileage_only'
                         }
-                    ]);
+                    ]);*/
                 
                 if (error) throw error;
                 
                 // Mostrar mensaje de éxito
-                showAlert(successAlert, 'Registro de kilometraje guardado exitosamente');
+                showAlert(successAlert, 'Registro de kilometraje guardado exitosamente ' + mileageDifference);
                 
                 // Limpiar formulario
                 mileageForm.reset();

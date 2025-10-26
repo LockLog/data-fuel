@@ -393,13 +393,13 @@
             try {
                 const { data, error } = await supabase
                     .from('fuel_records')
-                    .select('difference_mileage')
+                    .select('mileage_difference')
                     .order('created_at', { ascending: false })
                     .limit(1);
                 
                 if (error) throw error;
                 
-                return data.length > 0 ? data[0].difference_mileage : null;
+                return data.length > 0 ? data[0].mileage_difference : null;
             } catch (error) {
                 console.error('Error obteniendo la última diferencia de kilometraje:', error);
                 showAlert(errorAlert, 'Error al obtener la última diferencia de kilometraje');

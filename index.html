@@ -387,6 +387,25 @@
                 return null;
             }
         }
+
+        // Función para obtener el último registro de diferencia kilometraje 
+        async function getDifferenceMileage() {
+            try {
+                const { data, error } = await supabase
+                    .from('fuel_records')
+                    .select('difference_mileage')
+                    .order('created_at', { ascending: false })
+                    .limit(1);
+                
+                if (error) throw error;
+                
+                return data.length > 0 ? data[0].difference_mileage : null;
+            } catch (error) {
+                console.error('Error obteniendo la última diferencia de kilometraje:', error);
+                showAlert(errorAlert, 'Error al obtener la última diferencia de kilometraje');
+                return null;
+            }
+        }
         
         // Función para calcular la diferencia de kilometraje
         function calculateMileageDifference(currentMileage, lastMileage) {
@@ -459,6 +478,7 @@
             // Obtener el último kilometraje
             const lastMileage = await getLastMileage();
             const mileageDifference = calculateMileageDifference(mileage, lastMileage);
+            const lastDifferenceMileage = await getDifferenceMileage();
             
             //try {
                 // Insertar registro en Supabase
@@ -478,7 +498,7 @@
                 //if (error) throw error;
                 
                 // Mostrar mensaje de éxito
-                showAlert(successAlert, 'Has recorrido ' + mileageDifference + ' km | Último registro: ' + lastMileage);
+                showAlert(successAlert, 'Has recorrido ' + mileageDifference + ' km | Último registro: ' + lastDifferenceMileage);
                 
                 // Limpiar formulario
                 mileageForm.reset();

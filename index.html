@@ -323,22 +323,22 @@
     <a href="dashboard.html" class="btn">Ver Dashboard</a>
 </nav>
     <script>
-        // Configuración de Supabase
-        const SUPABASE_URL = 'https://xogdmevlqbmzcwtjilkh.supabase.co'; // Reemplaza con tu URL de Supabase
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhvZ2RtZXZscWJtemN3dGppbGtoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg1ODkzMDcsImV4cCI6MjA3NDE2NTMwN30.QmHUAEhtohN2NWdvCfYuvHEIjbpAHKNth3E2tHh0t28'; // Reemplaza con tu clave anónima de Supabase
+    // Configuración de Supabase
+    const SUPABASE_URL = 'https://xogdmevlqbmzcwtjilkh.supabase.co'; // Reemplaza con tu URL de Supabase
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhvZ2RtZXZscWJtemN3dGppbGtoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg1ODkzMDcsImV4cCI6MjA3NDE2NTMwN30.QmHUAEhtohN2NWdvCfYuvHEIjbpAHKNth3E2tHh0t28'; // Reemplaza con tu clave anónima de Supabase
+    
+    // Inicializar Supabase - CORRECCIÓN APLICADA
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
-        // Inicializar Supabase
-        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        
-        // Elementos del DOM
-        const tabs = document.querySelectorAll('.tab');
-        const tabContents = document.querySelectorAll('.tab-content');
-        const fuelForm = document.getElementById('fuelForm');
-        const mileageForm = document.getElementById('mileageForm');
-        const refreshBtn = document.getElementById('refreshBtn');
-        const recordsBody = document.getElementById('recordsBody');
-        const successAlert = document.getElementById('successAlert');
-        const errorAlert = document.getElementById('errorAlert');
+    // Elementos del DOM
+    const tabs = document.querySelectorAll('.tab');
+    const tabContents = document.querySelectorAll('.tab-content');
+    const fuelForm = document.getElementById('fuelForm');
+    const mileageForm = document.getElementById('mileageForm');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const recordsBody = document.getElementById('recordsBody');
+    const successAlert = document.getElementById('successAlert');
+    const errorAlert = document.getElementById('errorAlert');
         
         // Establecer fecha actual por defecto
         document.getElementById('fuelDate').valueAsDate = new Date();

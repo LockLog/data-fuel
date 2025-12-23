@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro de Combustible</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --primary: #3498db;
@@ -324,12 +324,14 @@
 </nav>
     <script>
     // Configuración de Supabase
-    const SUPABASE_URL = 'https://xogdmevlqbmzcwtjilkh.supabase.co'; // Reemplaza con tu URL de Supabase
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhvZ2RtZXZscWJtemN3dGppbGtoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg1ODkzMDcsImV4cCI6MjA3NDE2NTMwN30.QmHUAEhtohN2NWdvCfYuvHEIjbpAHKNth3E2tHh0t28'; // Reemplaza con tu clave anónima de Supabase
+    const SUPABASE_URL = 'https://xogdmevlqbmzcwtjilkh.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhvZ2RtZXZscWJtemN3dGppbGtoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg1ODkzMDcsImV4cCI6MjA3NDE2NTMwN30.QmHUAEhtohN2NWdvCfYuvHEIjbpAHKNth3E2tHh0t28';
     
-    // Inicializar Supabase - CORRECCIÓN APLICADA
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        
+    // Inicializar Supabase - SOLUCIÓN DEFINITIVA
+    const supabase = window.supabase.createClient || supabase.createClient;
+    const supabaseClient = supabase(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
+    // Usar supabaseClient en todo el código en lugar de supabase
     // Elementos del DOM
     const tabs = document.querySelectorAll('.tab');
     const tabContents = document.querySelectorAll('.tab-content');
@@ -339,232 +341,210 @@
     const recordsBody = document.getElementById('recordsBody');
     const successAlert = document.getElementById('successAlert');
     const errorAlert = document.getElementById('errorAlert');
-        
-        // Establecer fecha actual por defecto
-        document.getElementById('fuelDate').valueAsDate = new Date();
-        document.getElementById('mileageDate').valueAsDate = new Date();
-        
-        // Manejo de pestañas
-        tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                const tabId = tab.getAttribute('data-tab');
-                
-                // Remover clase activa de todas las pestañas y contenidos
-                tabs.forEach(t => t.classList.remove('active'));
-                tabContents.forEach(content => content.classList.remove('active'));
-                
-                // Agregar clase activa a la pestaña y contenido seleccionados
-                tab.classList.add('active');
-                document.getElementById(`${tabId}Tab`).classList.add('active');
-            });
-        });
-        
-        // Función para mostrar alertas
-        function showAlert(alertElement, message) {
-            alertElement.textContent = message;
-            alertElement.style.display = 'block';
+    
+    // Establecer fecha actual por defecto
+    document.getElementById('fuelDate').valueAsDate = new Date();
+    document.getElementById('mileageDate').valueAsDate = new Date();
+    
+    // Manejo de pestañas
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            const tabId = tab.getAttribute('data-tab');
             
-            setTimeout(() => {
-                alertElement.style.display = 'none';
-            }, 5000);
-        }
+            // Remover clase activa de todas las pestañas y contenidos
+            tabs.forEach(t => t.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+            
+            // Agregar clase activa a la pestaña y contenido seleccionados
+            tab.classList.add('active');
+            document.getElementById(`${tabId}Tab`).classList.add('active');
+        });
+    });
+    
+    // Función para mostrar alertas
+    function showAlert(alertElement, message) {
+        alertElement.textContent = message;
+        alertElement.style.display = 'block';
         
-        // Función para obtener el último registro de kilometraje
-        async function getLastMileage() {
-            try {
-                const { data, error } = await supabase
-                    .from('fuel_records')
-                    .select('mileage')
-                    .order('created_at', { ascending: false })
-                    .limit(1);
-                
-                if (error) throw error;
-                
-                return data.length > 0 ? data[0].mileage : null;
-            } catch (error) {
-                console.error('Error obteniendo último kilometraje:', error);
-                showAlert(errorAlert, 'Error al obtener el último kilometraje');
-                return null;
-            }
+        setTimeout(() => {
+            alertElement.style.display = 'none';
+        }, 5000);
+    }
+    
+    // Función para obtener el último registro de kilometraje
+    async function getLastMileage() {
+        try {
+            const { data, error } = await supabaseClient
+                .from('fuel_records')
+                .select('mileage')
+                .order('created_at', { ascending: false })
+                .limit(1);
+            
+            if (error) throw error;
+            
+            return data.length > 0 ? data[0].mileage : null;
+        } catch (error) {
+            console.error('Error obteniendo último kilometraje:', error);
+            showAlert(errorAlert, 'Error al obtener el último kilometraje');
+            return null;
         }
+    }
 
-        // Función para obtener el último registro de diferencia kilometraje 
-        async function getDifferenceMileage() {
-            try {
-                const { data, error } = await supabase
-                    .from('fuel_records')
-                    .select('mileage_difference')
-                    .order('created_at', { ascending: false })
-                    .limit(1);
-                
-                if (error) throw error;
-                
-                return data.length > 0 ? data[0].mileage_difference : null;
-            } catch (error) {
-                console.error('Error obteniendo la última diferencia de kilometraje:', error);
-                showAlert(errorAlert, 'Error al obtener la última diferencia de kilometraje');
-                return null;
-            }
+    // Función para obtener el último registro de diferencia kilometraje 
+    async function getDifferenceMileage() {
+        try {
+            const { data, error } = await supabaseClient
+                .from('fuel_records')
+                .select('mileage_difference')
+                .order('created_at', { ascending: false })
+                .limit(1);
+            
+            if (error) throw error;
+            
+            return data.length > 0 ? data[0].mileage_difference : null;
+        } catch (error) {
+            console.error('Error obteniendo la última diferencia de kilometraje:', error);
+            showAlert(errorAlert, 'Error al obtener la última diferencia de kilometraje');
+            return null;
+        }
+    }
+    
+    // Función para calcular la diferencia de kilometraje
+    function calculateMileageDifference(currentMileage, lastMileage) {
+        if (!lastMileage) return 0;
+        return currentMileage - lastMileage;
+    }
+    
+    // Manejo del formulario de combustible
+    fuelForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const date = document.getElementById('fuelDate').value;
+        const liters = parseFloat(document.getElementById('liters').value);
+        const value = parseFloat(document.getElementById('value').value);
+        const mileage = parseInt(document.getElementById('fuelMileage').value);
+        
+        // Validaciones básicas
+        if (!date || isNaN(liters) || isNaN(value) || isNaN(mileage)) {
+            showAlert(errorAlert, 'Por favor, complete todos los campos correctamente');
+            return;
         }
         
-        // Función para calcular la diferencia de kilometraje
-        function calculateMileageDifference(currentMileage, lastMileage) {
-            if (!lastMileage) return 0;
-            return currentMileage - lastMileage;
+        // Obtener el último kilometraje
+        const lastMileage = await getLastMileage();
+        const mileageDifference = calculateMileageDifference(mileage, lastMileage);
+        
+        try {
+            // Insertar registro en Supabase
+            const { data, error } = await supabaseClient
+                .from('fuel_records')
+                .insert([
+                    {
+                        date: date,
+                        liters: liters,
+                        value: value,
+                        mileage: mileage,
+                        mileage_difference: mileageDifference,
+                        record_type: 'fuel'
+                    }
+                ]);
+            
+            if (error) throw error;
+            
+            // Mostrar mensaje de éxito
+            showAlert(successAlert, 'Registro de combustible guardado exitosamente');
+            
+            // Limpiar formulario
+            fuelForm.reset();
+            document.getElementById('fuelDate').valueAsDate = new Date();
+            
+        } catch (error) {
+            console.error('Error guardando registro de combustible:', error);
+            showAlert(errorAlert, 'Error al guardar el registro de combustible');
+        }
+    });
+    
+    // Manejo del formulario de solo kilometraje
+    mileageForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const date = document.getElementById('mileageDate').value;
+        const mileage = parseInt(document.getElementById('mileageOnly').value);
+        
+        // Validaciones básicas
+        if (!date || isNaN(mileage)) {
+            showAlert(errorAlert, 'Por favor, complete todos los campos correctamente');
+            return;
         }
         
-        // Manejo del formulario de combustible
-        fuelForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
+        // Obtener el último kilometraje
+        const lastMileage = await getLastMileage();
+        const mileageDifference = calculateMileageDifference(mileage, lastMileage);
+        const lastDifferenceMileage = await getDifferenceMileage();
+        
+        // Mostrar mensaje de éxito
+        showAlert(successAlert, 'Has recorrido ' + mileageDifference + ' km | Último registro: ' + lastDifferenceMileage);
+        
+        // Limpiar formulario
+        mileageForm.reset();
+        document.getElementById('mileageDate').valueAsDate = new Date();
+    });
+    
+    // Función para cargar los registros
+    async function loadRecords() {
+        try {
+            const { data, error } = await supabaseClient
+                .from('fuel_records')
+                .select('*')
+                .order('created_at', { ascending: false });
             
-            const date = document.getElementById('fuelDate').value;
-            const liters = parseFloat(document.getElementById('liters').value);
-            const value = parseFloat(document.getElementById('value').value);
-            const mileage = parseInt(document.getElementById('fuelMileage').value);
+            if (error) throw error;
             
-            // Validaciones básicas
-            if (!date || isNaN(liters) || isNaN(value) || isNaN(mileage)) {
-                showAlert(errorAlert, 'Por favor, complete todos los campos correctamente');
+            // Limpiar tabla
+            recordsBody.innerHTML = '';
+            
+            if (data.length === 0) {
+                recordsBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No hay registros disponibles</td></tr>';
                 return;
             }
             
-            // Obtener el último kilometraje
-            const lastMileage = await getLastMileage();
-            const mileageDifference = calculateMileageDifference(mileage, lastMileage);
+            // Llenar tabla con los registros
+            data.forEach(record => {
+                const row = document.createElement('tr');
+                
+                // Formatear fecha
+                const date = new Date(record.date);
+                const formattedDate = date.toLocaleDateString('es-ES');
+                
+                // Determinar tipo de registro
+                const recordType = record.record_type === 'fuel' ? 'Combustible' : 'Kilometraje';
+                
+                row.innerHTML = `
+                    <td>${formattedDate}</td>
+                    <td>${record.liters ? record.liters.toFixed(2) : '-'}</td>
+                    <td>${record.value ? '$' + record.value.toFixed(2) : '-'}</td>
+                    <td>${record.mileage}</td>
+                    <td>${record.mileage_difference}</td>
+                    <td>${recordType}</td>
+                `;
+                
+                recordsBody.appendChild(row);
+            });
             
-            try {
-                // Insertar registro en Supabase
-                const { data, error } = await supabase
-                    .from('fuel_records')
-                    .insert([
-                        {
-                            date: date,
-                            liters: liters,
-                            value: value,
-                            mileage: mileage,
-                            mileage_difference: mileageDifference,
-                            record_type: 'fuel'
-                        }
-                    ]);
-                
-                if (error) throw error;
-                
-                // Mostrar mensaje de éxito
-                showAlert(successAlert, 'Registro de combustible guardado exitosamente');
-                
-                // Limpiar formulario
-                fuelForm.reset();
-                document.getElementById('fuelDate').valueAsDate = new Date();
-                
-            } catch (error) {
-                console.error('Error guardando registro de combustible:', error);
-                showAlert(errorAlert, 'Error al guardar el registro de combustible');
-            }
-        });
-        
-        // Manejo del formulario de solo kilometraje
-        mileageForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const date = document.getElementById('mileageDate').value;
-            const mileage = parseInt(document.getElementById('mileageOnly').value);
-            
-            // Validaciones básicas
-            if (!date || isNaN(mileage)) {
-                showAlert(errorAlert, 'Por favor, complete todos los campos correctamente');
-                return;
-            }
-            
-            // Obtener el último kilometraje
-            const lastMileage = await getLastMileage();
-            const mileageDifference = calculateMileageDifference(mileage, lastMileage);
-            const lastDifferenceMileage = await getDifferenceMileage();
-            
-            //try {
-                // Insertar registro en Supabase
-                /*const { data, error } = await supabase
-                    .from('fuel_records')
-                    .insert([
-                        {
-                            date: date,
-                            liters: null,
-                            value: null,
-                            mileage: mileage,
-                            mileage_difference: mileageDifference,
-                            record_type: 'mileage_only'
-                        }
-                    ]);*/
-                
-                //if (error) throw error;
-                
-                // Mostrar mensaje de éxito
-                showAlert(successAlert, 'Has recorrido ' + mileageDifference + ' km | Último registro: ' + lastDifferenceMileage);
-                
-                // Limpiar formulario
-                mileageForm.reset();
-                document.getElementById('mileageDate').valueAsDate = new Date();
-                
-          /*  } catch (error) {
-                console.error('Error guardando registro de kilometraje:', error);
-                showAlert(errorAlert, 'Error al guardar el registro de kilometraje');
-            } */
-        });
-        
-        // Función para cargar los registros
-        async function loadRecords() {
-            try {
-                const { data, error } = await supabase
-                    .from('fuel_records')
-                    .select('*')
-                    .order('created_at', { ascending: false });
-                
-                if (error) throw error;
-                
-                // Limpiar tabla
-                recordsBody.innerHTML = '';
-                
-                if (data.length === 0) {
-                    recordsBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No hay registros disponibles</td></tr>';
-                    return;
-                }
-                
-                // Llenar tabla con los registros
-                data.forEach(record => {
-                    const row = document.createElement('tr');
-                    
-                    // Formatear fecha
-                    const date = new Date(record.date);
-                    const formattedDate = date.toLocaleDateString('es-ES');
-                    
-                    // Determinar tipo de registro
-                    const recordType = record.record_type === 'fuel' ? 'Combustible' : 'Kilometraje';
-                    
-                    row.innerHTML = `
-                        <td>${formattedDate}</td>
-                        <td>${record.liters ? record.liters.toFixed(2) : '-'}</td>
-                        <td>${record.value ? '$' + record.value.toFixed(2) : '-'}</td>
-                        <td>${record.mileage}</td>
-                        <td>${record.mileage_difference}</td>
-                        <td>${recordType}</td>
-                    `;
-                    
-                    recordsBody.appendChild(row);
-                });
-                
-            } catch (error) {
-                console.error('Error cargando registros:', error);
-                showAlert(errorAlert, 'Error al cargar los registros');
-            }
+        } catch (error) {
+            console.error('Error cargando registros:', error);
+            showAlert(errorAlert, 'Error al cargar los registros');
         }
-        
-        // Cargar registros al hacer clic en el botón de actualizar
-        refreshBtn.addEventListener('click', loadRecords);
-        
-        // Cargar registros cuando se muestra la pestaña de historial
-        document.querySelector('[data-tab="records"]').addEventListener('click', loadRecords);
-        
-        // Inicializar la aplicación
-        console.log('Formulario de registro de combustible inicializado');
-    </script>
+    }
+    
+    // Cargar registros al hacer clic en el botón de actualizar
+    refreshBtn.addEventListener('click', loadRecords);
+    
+    // Cargar registros cuando se muestra la pestaña de historial
+    document.querySelector('[data-tab="records"]').addEventListener('click', loadRecords);
+    
+    // Inicializar la aplicación
+    console.log('Formulario de registro de combustible inicializado');
+</script>
 </body>
 </html>

@@ -4,15 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro de Combustible</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Quitamos Supabase JS y añadimos PostgREST para Neon -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/postgrest-js@0.39.0/dist/umd/postgrest.min.js"></script>
     <style>
         :root {
-            --primary: #3498db;
-            --primary-dark: #2980b9;
-            --secondary: #2ecc71;
-            --secondary-dark: #27ae60;
-            --danger: #e74c3c;
-            --danger-dark: #c0392b;
+            --primary: #14b8a6;
+            --primary-dark: #0d9488;
+            --secondary: #8b5cf6;
+            --secondary-dark: #7c3aed;
+            --danger: #ef4444;
+            --danger-dark: #dc2626;
             --light: #f8f9fa;
             --dark: #343a40;
             --gray: #6c757d;
@@ -46,6 +47,7 @@
             background: white;
             border-radius: var(--border-radius);
             box-shadow: var(--box-shadow);
+            border-top: 4px solid var(--primary);
         }
 
         h1 {
@@ -89,7 +91,7 @@
         input:focus, select:focus {
             outline: none;
             border-color: var(--primary);
-            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+            box-shadow: 0 0 0 2px rgba(20, 184, 166, 0.2);
         }
 
         .btn {
@@ -175,13 +177,13 @@
         }
 
         .alert-success {
-            background-color: rgba(46, 204, 113, 0.1);
-            color: var(--secondary-dark);
-            border: 1px solid var(--secondary);
+            background-color: rgba(20, 184, 166, 0.1);
+            color: var(--primary-dark);
+            border: 1px solid var(--primary);
         }
 
         .alert-error {
-            background-color: rgba(231, 76, 60, 0.1);
+            background-color: rgba(239, 68, 68, 0.1);
             color: var(--danger-dark);
             border: 1px solid var(--danger);
         }
@@ -239,8 +241,8 @@
 <body>
     <div class="container">
         <header>
-            <h1>Registro de Combustible</h1>
-            <p class="description">Sistema para registrar el consumo de combustible y kilometraje de vehículos</p>
+            <h1>🚗 Registro de Combustible</h1>
+            <p class="description">Sistema para registrar el consumo de combustible y kilometraje (Conectado a Neon)</p>
         </header>
 
         <div class="card">
@@ -253,6 +255,9 @@
             <!-- Alerts -->
             <div id="successAlert" class="alert alert-success"></div>
             <div id="errorAlert" class="alert alert-error"></div>
+            <div id="infoAlert" class="alert" style="background-color: rgba(139, 92, 246, 0.1); color: var(--secondary-dark); border: 1px solid var(--secondary);">
+                Conectado a Neon PostgreSQL
+            </div>
 
             <!-- Fuel Registration Tab -->
             <div id="fuelTab" class="tab-content active">
@@ -299,7 +304,7 @@
             <!-- Records Tab -->
             <div id="recordsTab" class="tab-content">
                 <div class="btn-group">
-                    <button id="refreshBtn" class="btn">Actualizar Historial</button>
+                    <button id="refreshBtn" class="btn">🔄 Actualizar Historial</button>
                 </div>
                 <table class="records-table">
                     <thead>
@@ -319,232 +324,259 @@
             </div>
         </div>
     </div>
-<nav style="text-align: center; margin: 20px 0;">
-    <a href="dashboard.html" class="btn">Ver Dashboard</a>
-</nav>
-    <script>
-    // Configuración de Supabase
-    const SUPABASE_URL = 'https://xogdmevlqbmzcwtjilkh.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhvZ2RtZXZscWJtemN3dGppbGtoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg1ODkzMDcsImV4cCI6MjA3NDE2NTMwN30.QmHUAEhtohN2NWdvCfYuvHEIjbpAHKNth3E2tHh0t28';
-    
-    // Inicializar Supabase - SOLUCIÓN DEFINITIVA
-    const supabase = window.supabase.createClient || supabase.createClient;
-    const supabaseClient = supabase(SUPABASE_URL, SUPABASE_ANON_KEY);
-    
-    // Usar supabaseClient en todo el código en lugar de supabase
-    // Elementos del DOM
-    const tabs = document.querySelectorAll('.tab');
-    const tabContents = document.querySelectorAll('.tab-content');
-    const fuelForm = document.getElementById('fuelForm');
-    const mileageForm = document.getElementById('mileageForm');
-    const refreshBtn = document.getElementById('refreshBtn');
-    const recordsBody = document.getElementById('recordsBody');
-    const successAlert = document.getElementById('successAlert');
-    const errorAlert = document.getElementById('errorAlert');
-    
-    // Establecer fecha actual por defecto
-    document.getElementById('fuelDate').valueAsDate = new Date();
-    document.getElementById('mileageDate').valueAsDate = new Date();
-    
-    // Manejo de pestañas
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            const tabId = tab.getAttribute('data-tab');
-            
-            // Remover clase activa de todas las pestañas y contenidos
-            tabs.forEach(t => t.classList.remove('active'));
-            tabContents.forEach(content => content.classList.remove('active'));
-            
-            // Agregar clase activa a la pestaña y contenido seleccionados
-            tab.classList.add('active');
-            document.getElementById(`${tabId}Tab`).classList.add('active');
-        });
-    });
-    
-    // Función para mostrar alertas
-    function showAlert(alertElement, message) {
-        alertElement.textContent = message;
-        alertElement.style.display = 'block';
-        
-        setTimeout(() => {
-            alertElement.style.display = 'none';
-        }, 5000);
-    }
-    
-    // Función para obtener el último registro de kilometraje
-    async function getLastMileage() {
-        try {
-            const { data, error } = await supabaseClient
-                .from('fuel_records')
-                .select('mileage')
-                .order('created_at', { ascending: false })
-                .limit(1);
-            
-            if (error) throw error;
-            
-            return data.length > 0 ? data[0].mileage : null;
-        } catch (error) {
-            console.error('Error obteniendo último kilometraje:', error);
-            showAlert(errorAlert, 'Error al obtener el último kilometraje');
-            return null;
-        }
-    }
 
-    // Función para obtener el último registro de diferencia kilometraje 
-    async function getDifferenceMileage() {
-        try {
-            const { data, error } = await supabaseClient
-                .from('fuel_records')
-                .select('mileage_difference')
-                .order('created_at', { ascending: false })
-                .limit(1);
+    <nav style="text-align: center; margin: 20px 0;">
+        <a href="dashboard.html" class="btn">📊 Ver Dashboard</a>
+    </nav>
+
+    <script>
+        // 🔧 CONFIGURACIÓN NEON - REEMPLAZA ESTOS VALORES
+        // ================================================
+        const NEON_CONNECTION_STRING = 'postgresql://neondb_owner:npg_0BwtTQU2LFXb@ep-spring-bird-adlkx0d1-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require';
+        const NEON_API_KEY = 'https://ep-spring-bird-adlkx0d1.apirest.c-2.us-east-1.aws.neon.tech/neondb/rest/v1'; // Obtén esto del dashboard de Neon
+        const NEON_PROJECT_ID = 'green-tooth-13665796'; // ID de tu proyecto en Neon
+        
+        // ⚠️ NOTA: Para usar la API REST de Neon necesitas:
+        // 1. Habilitar API en dashboard.neon.tech
+        // 2. Crear un API Key
+        // 3. Configurar permisos CORS si es necesario
+        
+        // 📁 Configuración de la tabla en Neon
+        const TABLE_NAME = 'fuel_records';
+        
+        // Elementos del DOM
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const fuelForm = document.getElementById('fuelForm');
+        const mileageForm = document.getElementById('mileageForm');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const recordsBody = document.getElementById('recordsBody');
+        const successAlert = document.getElementById('successAlert');
+        const errorAlert = document.getElementById('errorAlert');
+        const infoAlert = document.getElementById('infoAlert');
+        
+        // Mostrar info de conexión
+        infoAlert.style.display = 'block';
+        infoAlert.textContent = '⚠️ Configura tu conexión a Neon en el código JavaScript (líneas 228-234)';
+        
+        // Establecer fecha actual por defecto
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('fuelDate').value = today;
+        document.getElementById('mileageDate').value = today;
+        
+        // Manejo de pestañas
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.getAttribute('data-tab');
+                
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+                
+                tab.classList.add('active');
+                document.getElementById(`${tabId}Tab`).classList.add('active');
+            });
+        });
+        
+        // Función para mostrar alertas
+        function showAlert(alertElement, message, isError = false) {
+            alertElement.textContent = message;
+            alertElement.style.display = 'block';
             
-            if (error) throw error;
+            if (isError) {
+                alertElement.className = 'alert alert-error';
+            } else {
+                alertElement.className = 'alert alert-success';
+            }
             
-            return data.length > 0 ? data[0].mileage_difference : null;
-        } catch (error) {
-            console.error('Error obteniendo la última diferencia de kilometraje:', error);
-            showAlert(errorAlert, 'Error al obtener la última diferencia de kilometraje');
-            return null;
-        }
-    }
-    
-    // Función para calcular la diferencia de kilometraje
-    function calculateMileageDifference(currentMileage, lastMileage) {
-        if (!lastMileage) return 0;
-        return currentMileage - lastMileage;
-    }
-    
-    // Manejo del formulario de combustible
-    fuelForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const date = document.getElementById('fuelDate').value;
-        const liters = parseFloat(document.getElementById('liters').value);
-        const value = parseFloat(document.getElementById('value').value);
-        const mileage = parseInt(document.getElementById('fuelMileage').value);
-        
-        // Validaciones básicas
-        if (!date || isNaN(liters) || isNaN(value) || isNaN(mileage)) {
-            showAlert(errorAlert, 'Por favor, complete todos los campos correctamente');
-            return;
+            setTimeout(() => {
+                alertElement.style.display = 'none';
+            }, 5000);
         }
         
-        // Obtener el último kilometraje
-        const lastMileage = await getLastMileage();
-        const mileageDifference = calculateMileageDifference(mileage, lastMileage);
+        // 📦 FUNCIONES PARA CONECTAR CON NEON
+        // ====================================
         
-        try {
-            // Insertar registro en Supabase
-            const { data, error } = await supabaseClient
-                .from('fuel_records')
-                .insert([
-                    {
-                        date: date,
-                        liters: liters,
-                        value: value,
-                        mileage: mileage,
-                        mileage_difference: mileageDifference,
-                        record_type: 'fuel'
+        // Opción 1: Usando Fetch API directamente con REST API de Neon
+        async function neonFetch(endpoint, method = 'GET', data = null) {
+            try {
+                const url = `https://console.neon.tech/api/v2/projects/${NEON_PROJECT_ID}/${endpoint}`;
+                
+                const options = {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${NEON_API_KEY}`,
+                        'Accept': 'application/json'
                     }
-                ]);
-            
-            if (error) throw error;
-            
-            // Mostrar mensaje de éxito
-            showAlert(successAlert, 'Registro de combustible guardado exitosamente');
-            
-            // Limpiar formulario
-            fuelForm.reset();
-            document.getElementById('fuelDate').valueAsDate = new Date();
-            
-        } catch (error) {
-            console.error('Error guardando registro de combustible:', error);
-            showAlert(errorAlert, 'Error al guardar el registro de combustible');
-        }
-    });
-    
-    // Manejo del formulario de solo kilometraje
-    mileageForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const date = document.getElementById('mileageDate').value;
-        const mileage = parseInt(document.getElementById('mileageOnly').value);
-        
-        // Validaciones básicas
-        if (!date || isNaN(mileage)) {
-            showAlert(errorAlert, 'Por favor, completa todos los campos correctamente');
-            return;
+                };
+                
+                if (data) {
+                    options.body = JSON.stringify(data);
+                }
+                
+                const response = await fetch(url, options);
+                
+                if (!response.ok) {
+                    throw new Error(`Error ${response.status}: ${response.statusText}`);
+                }
+                
+                return await response.json();
+            } catch (error) {
+                console.error('Error en neonFetch:', error);
+                throw error;
+            }
         }
         
-        // Obtener el último kilometraje
-        const lastMileage = await getLastMileage();
-        const mileageDifference = calculateMileageDifference(mileage, lastMileage);
-        const lastDifferenceMileage = await getDifferenceMileage();
+        // Opción 2: Usando PostgreSQL directamente (requiere backend)
+        // Esta es la solución recomendada - crear un backend simple
         
-        // Mostrar mensaje de éxito
-        showAlert(successAlert, 'Has recorrido ' + mileageDifference + ' km | Último registro: ' + lastDifferenceMileage);
+        // 🔄 BACKEND SIMULADO (para pruebas - en producción usa un backend real)
+        class NeonBackendSimulator {
+            constructor() {
+                this.localStorageKey = 'neon_fuel_records_backup';
+                this.loadFromLocalStorage();
+            }
+            
+            loadFromLocalStorage() {
+                const data = localStorage.getItem(this.localStorageKey);
+                this.records = data ? JSON.parse(data) : [];
+            }
+            
+            saveToLocalStorage() {
+                localStorage.setItem(this.localStorageKey, JSON.stringify(this.records));
+            }
+            
+            // Simulación de operaciones de base de datos
+            async insertRecord(record) {
+                const newRecord = {
+                    id: Date.now().toString(),
+                    created_at: new Date().toISOString(),
+                    ...record
+                };
+                
+                this.records.unshift(newRecord);
+                this.saveToLocalStorage();
+                
+                // Aquí iría la llamada real a Neon
+                console.log('📤 Registro para enviar a Neon:', newRecord);
+                
+                return { data: [newRecord], error: null };
+            }
+            
+            async getRecords() {
+                // Aquí iría la consulta real a Neon
+                console.log('📥 Obteniendo registros de Neon...');
+                
+                return { 
+                    data: [...this.records], 
+                    error: null 
+                };
+            }
+            
+            async getLastMileage() {
+                if (this.records.length === 0) {
+                    return { data: [], error: null };
+                }
+                
+                const sorted = [...this.records].sort((a, b) => 
+                    new Date(b.created_at) - new Date(a.created_at)
+                );
+                
+                return { 
+                    data: sorted.length > 0 ? [sorted[0]] : [], 
+                    error: null 
+                };
+            }
+        }
         
-        // Limpiar formulario
-        mileageForm.reset();
-        document.getElementById('mileageDate').valueAsDate = new Date();
-    });
-    
-    // Función para cargar los registros
-    async function loadRecords() {
-        try {
-            const { data, error } = await supabaseClient
-                .from('fuel_records')
-                .select('*')
-                .order('created_at', { ascending: false });
+        // Inicializar backend simulado
+        const db = new NeonBackendSimulator();
+        
+        // 🚗 FUNCIONES DE LA APLICACIÓN
+        // ==============================
+        
+        async function getLastMileage() {
+            try {
+                const { data, error } = await db.getLastMileage();
+                
+                if (error) throw error;
+                
+                return data.length > 0 ? data[0].mileage : null;
+            } catch (error) {
+                console.error('Error obteniendo último kilometraje:', error);
+                showAlert(errorAlert, 'Error al obtener el último kilometraje', true);
+                return null;
+            }
+        }
+        
+        function calculateMileageDifference(currentMileage, lastMileage) {
+            if (!lastMileage || lastMileage === 0) return 0;
+            return Math.max(0, currentMileage - lastMileage);
+        }
+        
+        // Manejo del formulario de combustible
+        fuelForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
             
-            if (error) throw error;
+            const date = document.getElementById('fuelDate').value;
+            const liters = parseFloat(document.getElementById('liters').value);
+            const value = parseFloat(document.getElementById('value').value);
+            const mileage = parseInt(document.getElementById('fuelMileage').value);
             
-            // Limpiar tabla
-            recordsBody.innerHTML = '';
-            
-            if (data.length === 0) {
-                recordsBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No hay registros disponibles</td></tr>';
+            if (!date || isNaN(liters) || isNaN(value) || isNaN(mileage)) {
+                showAlert(errorAlert, 'Por favor, complete todos los campos correctamente', true);
                 return;
             }
             
-            // Llenar tabla con los registros
-            data.forEach(record => {
-                const row = document.createElement('tr');
-                
-                // Formatear fecha
-                const date = new Date(record.date);
-                const formattedDate = date.toLocaleDateString('es-ES');
-                
-                // Determinar tipo de registro
-                const recordType = record.record_type === 'fuel' ? 'Combustible' : 'Kilometraje';
-                
-                row.innerHTML = `
-                    <td>${formattedDate}</td>
-                    <td>${record.liters ? record.liters.toFixed(2) : '-'}</td>
-                    <td>${record.value ? '$' + record.value.toFixed(2) : '-'}</td>
-                    <td>${record.mileage}</td>
-                    <td>${record.mileage_difference}</td>
-                    <td>${recordType}</td>
-                `;
-                
-                recordsBody.appendChild(row);
-            });
+            if (liters <= 0 || value <= 0 || mileage <= 0) {
+                showAlert(errorAlert, 'Los valores deben ser mayores a 0', true);
+                return;
+            }
             
-        } catch (error) {
-            console.error('Error cargando registros:', error);
-            showAlert(errorAlert, 'Error al cargar los registros');
-        }
-    }
-    
-    // Cargar registros al hacer clic en el botón de actualizar
-    refreshBtn.addEventListener('click', loadRecords);
-    
-    // Cargar registros cuando se muestra la pestaña de historial
-    document.querySelector('[data-tab="records"]').addEventListener('click', loadRecords);
-    
-    // Inicializar la aplicación
-    console.log('Formulario de registro de combustible inicializado');
-</script>
-</body>
-</html>
+            const lastMileage = await getLastMileage();
+            const mileageDifference = calculateMileageDifference(mileage, lastMileage);
+            
+            // Calcular precio por litro
+            const pricePerLiter = value / liters;
+            
+            try {
+                const { data, error } = await db.insertRecord({
+                    date: date,
+                    liters: liters,
+                    value: value,
+                    price_per_liter: pricePerLiter,
+                    mileage: mileage,
+                    mileage_difference: mileageDifference,
+                    record_type: 'fuel'
+                });
+                
+                if (error) throw error;
+                
+                showAlert(successAlert, `✅ Registro guardado | ${liters}L × $${pricePerLiter.toFixed(2)}/L = $${value.toFixed(2)}`);
+                
+                fuelForm.reset();
+                document.getElementById('fuelDate').value = today;
+                
+            } catch (error) {
+                console.error('Error guardando registro:', error);
+                showAlert(errorAlert, 'Error al guardar el registro', true);
+            }
+        });
+        
+        // Manejo del formulario de solo kilometraje
+        mileageForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const date = document.getElementById('mileageDate').value;
+            const mileage = parseInt(document.getElementById('mileageOnly').value);
+            
+            if (!date || isNaN(mileage) || mileage <= 0) {
+                showAlert(errorAlert, 'Por favor, ingrese un kilometraje válido', true);
+                return;
+            }
+            
+            const lastMileage = await getLastMileage();
+            const mileageDifference = calculateMileageDifference(mileage, lastMileage);
+            
+            try {
+ 

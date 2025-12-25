@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Combustible - Neon</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/postgrest-js@0.39.0/dist/umd/postgrest.min.js"></script>
+    <style>
+        :root {
+            --primary: #14b8a6;
+            --primary-dark: #0d9488;
+            --secondary: #8b5cf6;
+            --secondary-dark: #7c3aed;
+            --danger: #ef4444;
+            --danger-dark: #dc2626;
+            --warning: #f59e0b;
+            --warning-dark: #d97706;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --gray: #6c757d;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            border-top: 4px solid var(--primary);
+        }
+
+        h1 {
+            color: var(--primary);
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .description {
+            color: var(--gray);
+            font-size: 1.1rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+
+        .config-panel {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: var(--border-radius);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .config-panel h3 {
+            margin-bottom: 15px;
+            color: var(--primary);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(20, 184, 166, 0.2);
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 20px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--secondary-dark);
+        }
+
+        .btn-warning {
+            background-color: var(--warning);
+        }
+
+        .btn-warning:hover {
+            background-color: var(--warning-dark);
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+        }
+
+        .btn-danger:hover {
+            background-color: var(--danger-dark);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-group .btn {
+            flex: 1;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--gray);
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .alert {
+            padding: 12px 15px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert-success {
+            background-color: rgba(20, 184, 166, 0.1);
+            color: var(--primary-dark);
+            border: 1px solid var(--primary);
+        }
+
+        .alert-error {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--danger-dark);
+            border: 1px solid var(--danger);
+        }
+
+        .alert-warning {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: var(--warning-dark);
+            border: 1px solid var(--warning);
+        }
+
+        .records-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .records-table th, .records-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .records-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+
+        .records-table tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: var(--border-radius);
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .status-connected {
+            background-color: rgba(20, 184, 166, 0.1);
+            color: var(--primary-dark);
+            border: 1px solid var(--primary);
+        }
+
+        .status-disconnected {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--danger-dark);
+            border: 1px solid var(--danger);
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .connected {
+            background-color: var(--secondary);
+        }
+
+        .disconnected {
+            background-color: var(--danger);
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .tab {
+                border-bottom: none;
+                border-left: 3px solid transparent;
+            }
+            
+            .tab.active {
+                border-left-color: var(--primary);
+                border-bottom: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚗 Registro de Combustible</h1>
+            <p class="description">Sistema de registro conectado directamente a Neon PostgreSQL</p>
+        </header>
+
+        <div class="config-panel" id="configPanel">
+            <h3>⚙️ Configuración de Conexión Neon</h3>
+            <div class="form-group">
+                <label for="neonUrl">URL de la API PostgREST de Neon</label>
+                <input type="url" id="neonUrl" placeholder="https://tu-proyecto.supabase.co/rest/v1" required>
+                <small style="color: var(--gray); margin-top: 5px; display: block;">
+                    Debe terminar en /rest/v1. Obtén esta URL del dashboard de tu proyecto Neon.
+                </small>
+            </div>
+            <div class="form-group">
+                <label for="neonKey">API Key de Neon</label>
+                <input type="password" id="neonKey" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." required>
+                <small style="color: var(--gray); margin-top: 5px; display: block;">
+                    API Key con permisos para leer/escribir en la tabla fuel_records
+                </small>
+            </div>
+            <div class="form-group">
+                <label for="neonTable">Nombre de la Tabla</label>
+                <input type="text" id="neonTable" value="fuel_records" required>
+            </div>
+            <div class="btn-group">
+                <button type="button" class="btn" id="testConnectionBtn">🔌 Probar Conexión</button>
+                <button type="button" class="btn btn-secondary" id="saveConfigBtn">💾 Guardar Configuración</button>
+            </div>
+        </div>
+
+        <div class="connection-status status-disconnected" id="connectionStatus">
+            <span class="status-dot disconnected"></span>
+            <span>Desconectado - Configura la conexión primero</span>
+        </div>
+
+        <div class="card" id="mainApp" style="display: none;">
+            <div class="tabs">
+                <button class="tab active" data-tab="fuel">⛽ Registro de Combustible</button>
+                <button class="tab" data-tab="mileage">🛣️ Solo Kilometraje</button>
+                <button class="tab" data-tab="records">📋 Historial</button>
+            </div>
+
+            <!-- Alerts -->
+            <div id="successAlert" class="alert alert-success"></div>
+            <div id="errorAlert" class="alert alert-error"></div>
+
+            <!-- Fuel Registration Tab -->
+            <div id="fuelTab" class="tab-content active">
+                <form id="fuelForm">
+                    <div class="form-group">
+                        <label for="fuelDate">Fecha</label>
+                        <input type="date" id="fuelDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="liters">Litros</label>
+                        <input type="number" id="liters" step="0.01" min="0.1" placeholder="Ej: 45.50" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="value">Valor ($)</label>
+                        <input type="number" id="value" step="0.01" min="1" placeholder="Ej: 185000" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="fuelMileage">Kilometraje</label>
+                        <input type="number" id="fuelMileage" min="1" placeholder="Ej: 125000" required>
+                    </div>
+                    <div class="btn-group">
+                        <button type="submit" class="btn btn-secondary" id="fuelSubmitBtn">✅ Registrar Combustible</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Mileage Only Tab -->
+            <div id="mileageTab" class="tab-content">
+                <form id="mileageForm">
+                    <div class="form-group">
+                        <label for="mileageDate">Fecha</label>
+                        <input type="date" id="mileageDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="mileageOnly">Kilometraje</label>
+                        <input type="number" id="mileageOnly" min="1" placeholder="Ej: 125000" required>
+                    </div>
+                    <div class="btn-group">
+                        <button type="submit" class="btn" id="mileageSubmitBtn">✅ Registrar Kilometraje</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Records Tab -->
+            <div id="recordsTab" class="tab-content">
+                <div class="btn-group">
+                    <button id="refreshBtn" class="btn">🔄 Actualizar Historial</button>
+                    <button id="exportBtn" class="btn btn-warning">📥 Exportar CSV</button>
+                    <button id="clearBtn" class="btn btn-danger" style="display: none;">🗑️ Borrar Todos</button>
+                </div>
+                <table class="records-table">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Litros</th>
+                            <th>Valor</th>
+                            <th>Precio/L</th>
+                            <th>Kilometraje</th>
+                            <th>Diferencia KM</th>
+                            <th>Tipo</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recordsBody">
+                        <!-- Los registros se cargarán aquí -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 🔧 CONFIGURACIÓN PREDETERMINADA - REEMPLAZA ESTOS VALORES
+        // ===========================================================
+        const DEFAULT_CONFIG = {
+            neonUrl: 'https://ep-spring-bird-adlkx0d1.apirest.c-2.us-east-1.aws.neon.tech/neondb/rest/v1', // Ej: https://ep-cool-sound-123456.supabase.co/rest/v1
+            neonKey: 'napi_qou56p7wlxf7nu32tjhrdp0qe56co72h768zuvu6tqwki14gw7wywz5omjla9ikl', // Tu API Key de Neon
+            tableName: 'fuel_records'
+        };
+
+        // 📦 ALMACENAMIENTO LOCAL PARA CONFIGURACIÓN
+        const CONFIG_STORAGE_KEY = 'neon_fuel_config';
+
+        // 🎮 ELEMENTOS DEL DOM
+        const configPanel = document.getElementById('configPanel');
+        const mainApp = document.getElementById('mainApp');
+        const connectionStatus = document.getElementById('connectionStatus');
+        const testConnectionBtn = document.getElementById('testConnectionBtn');
+        const saveConfigBtn = document.getElementById('saveConfigBtn');
+        
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const fuelForm = document.getElementById('fuelForm');
+        const mileageForm = document.getElementById('mileageForm');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const exportBtn = document.getElementById('exportBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const recordsBody = document.getElementById('recordsBody');
+        const successAlert = document.getElementById('successAlert');
+        const errorAlert = document.getElementById('errorAlert');
+
+        // 🔌 VARIABLES GLOBALES DE CONEXIÓN
+        let neonConfig = {};
+        let postgrestClient = null;
+        let isConnected = false;
+
+        // 📅 INICIALIZAR FECHAS
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('fuelDate').value = today;
+        document.getElementById('mileageDate').value = today;
+
+        // 💾 CARGAR CONFIGURACIÓN GUARDADA
+        function loadConfig() {
+            const saved = localStorage.getItem(CONFIG_STORAGE_KEY);
+            if (saved) {
+                try {
+                    neonConfig = JSON.parse(saved);
+                    document.getElementById('neonUrl').value = neonConfig.neonUrl || '';
+                    document.getElementById('neonKey').value = neonConfig.neonKey || '';
+                    document.getElementById('neonTable').value = neonConfig.tableName || 'fuel_records';
+                    
+                    if (neonConfig.neonUrl && neonConfig.neonKey) {
+                        initializeConnection();
+                    }
+                } catch (e) {
+                    console.error('Error cargando configuración:', e);
+                }
+            }
+        }
+
+        // 🔌 INICIALIZAR CONEXIÓN POSTGREST
+        function initializeConnection() {
+            try {
+                if (!neonConfig.neonUrl || !neonConfig.neonKey) {
+                    updateConnectionStatus(false, 'Configuración incompleta');
+                    return;
+                }
+
+                // Crear cliente PostgREST
+                postgrestClient = window.postgrest.default
+                    ? new window.postgrest.default(neonConfig.neonUrl, {
+                        headers: {
+                            'apikey': neonConfig.neonKey,
+                            'Authorization': `Bearer ${neonConfig.neonKey}`,
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    : null;
+
+                if (!postgrestClient) {
+                    updateConnectionStatus(false, 'Error al crear cliente');
+                    return;
+                }
+
+                // Probar conexión
+                testNeonConnection();
+                
+            } catch (error) {
+                console.error('Error inicializando conexión:', error);
+                updateConnectionStatus(false, 'Error de configuración');
+            }
+        }
+
+        // 🧪 PROBAR CONEXIÓN CON NEON
+        async function testNeonConnection() {
+            try {
+                testConnectionBtn.innerHTML = '<div class="loading"></div> Probando...';
+                testConnectionBtn.disabled = true;
+
+                const response = await fetch(`${neonConfig.neonUrl}/${neonConfig.tableName}?limit=1`, {
+                    headers: {
+                        'apikey': neonConfig.neonKey,
+                        'Authorization': `Bearer ${neonConfig.neonKey}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'count=exact'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                isConnected = true;
+                updateConnectionStatus(true, 'Conectado a Neon');
+                showMainApp();
+                
+                showAlert(successAlert, '✅ Conexión exitosa con Neon');
+                
+                // Cargar registros si hay conexión
+                loadRecords();
+
+            } catch (error) {
+                console.error('Error probando conexión:', error);
+                isConnected = false;
+                updateConnectionStatus(false, `Error: ${error.message}`);
+                showAlert(errorAlert, `❌ Error de conexión: ${error.message}`, true);
+            } finally {
+                testConnectionBtn.innerHTML = '🔌 Probar Conexión';
+                testConnectionBtn.disabled = false;
+            }
+        }
+
+        // 🔄 ACTUALIZAR ESTADO DE CONEXIÓN
+        function updateConnectionStatus(connected, message) {
+            isConnected = connected;
+            
+            const statusDot = connectionStatus.querySelector('.status-dot');
+            statusDot.className = 'status-dot ' + (connected ? 'connected' : 'disconnected');
+            
+            connectionStatus.className = `connection-status ${connected ? 'status-connected' : 'status-disconnected'}`;
+            connectionStatus.innerHTML = `
+                <span class="status-dot ${connected ? 'connected' : 'disconnected'}"></span>
+                <span>${message}</span>
+            `;
+        }
+
+        // 🎯 MOSTRAR APLICACIÓN PRINCIPAL
+        function showMainApp() {
+            configPanel.style.display = 'none';
+            mainApp.style.display = 'block';
+        }
+
+        // 📤 MOSTRAR PANEL DE CONFIGURACIÓN
+        function showConfigPanel() {
+            configPanel.style.display = 'block';
+            mainApp.style.display = 'none';
+        }
+
+        // 📝 MOSTRAR ALERTAS
+        function showAlert(alertElement, message, isError = false) {
+            alertElement.textContent = message;
+            alertElement.className = isError ? 'alert alert-error' : 'alert alert-success';
+            alertElement.style.display = 'block';
+            
+            setTimeout(() => {
+                alertElement.style.display = 'none';
+            }, 5000);
+        }
+
+        // 🗂️ MANEJO DE PESTAÑAS
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.getAttribute('data-tab');
+                
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+                
+                tab.classList.add('active');
+                document.getElementById(`${tabId}Tab`).classList.add('active');
+            });
+        });
+
+        // 🔧 FUNCIONES DE BASE DE DATOS
+        async function getLastMileage() {
+            try {
+                const response = await fetch(
+                    `${neonConfig.neonUrl}/${neonConfig.tableName}?order=created_at.desc&limit=1`,
+                    {
+                        headers: {
+                            'apikey': neonConfig.neonKey,
+                            'Authorization': `Bearer ${neonConfig.neonKey}`,
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
+
+                if (!response.ok) throw new Error('Error al obtener último kilometraje');
+                
+                const data = await response.json();
+                return data.length > 0 ? data[0].mileage : null;
+                
+            } catch (error) {
+                console.error('Error obteniendo último kilometraje:', error);
+                showAlert(errorAlert, 'Error al obtener el último kilometraje', true);
+                return null;
+            }
+        }
+
+        // 📥 INSERTAR REGISTRO EN NEON
+        async function insertRecord(record) {
+            try {
+                const response = await fetch(`${neonConfig.neonUrl}/${neonConfig.tableName}`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': neonConfig.neonKey,
+                        'Authorization': `Bearer ${neonConfig.neonKey}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=representation'
+                    },
+                    body: JSON.stringify(record)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || `HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                return { data: data, error: null };
+                
+            } catch (error) {
+                console.error('Error insertando registro:', error);
+                return { data: null, error: error.message };
+            }
+        }
+
+        // 📋 OBTENER REGISTROS DE NEON
+        async function getRecords() {
+            try {
+                const response = await fetch(
+                    `${neonConfig.neonUrl}/${neonConfig.tableName}?order=created_at.desc`,
+                    {
+                        headers: {
+                            'apikey': neonConfig.neonKey,
+                            'Authorization': `Bearer ${neonConfig.neonKey}`,
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
+
+                if (!response.ok) throw new Error('Error al obtener registros');
+                
+                const data = await response.json();
+                return { data: data, error: null };
+                
+            } catch (error) {
+                console.error('Error obteniendo registros:', error);
+                return { data: [], error: error.message };
+            }
+        }
+
+        // 🚗 MANEJAR FORMULARIO DE COMBUSTIBLE
+        fuelForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!isConnected) {
+                showAlert(errorAlert, '❌ No hay conexión con Neon. Configura primero.', true);
+                return;
+            }
+
+            const date = document.getElementById('fuelDate').value;
+            const liters = parseFloat(document.getElementById('liters').value);
+            const value = parseFloat(document.getElementById('value').value);
+            const mileage = parseInt(document.getElementById('fuelMileage').value);
+
+            if (!date || isNaN(liters) || isNaN(value) || isNaN(mileage)) {
+                showAlert(errorAlert, 'Por favor, complete todos los campos correctamente', true);
+                return;
+            }
+
+            if (liters <= 0 || value <= 0 || mileage <= 0) {
+                showAlert(errorAlert, 'Los valores deben ser mayores a 0', true);
+                return;
+            }
+
+            const lastMileage = await getLastMileage();
+            const mileageDifference = lastMileage ? Math.max(0, mileage - lastMileage) : 0;
+            const pricePerLiter = value / liters;
+
+            const fuelSubmitBtn = document.getElementById('fuelSubmitBtn');
+            const originalText = fuelSubmitBtn.innerHTML;
+            fuelSubmitBtn.innerHTML = '<div class="loading"></div>';
+            fuelSubmitBtn.disabled = true;
+
+            try {
+                const { data, error } = await insertRecord({
+                    date: date,
+                    liters: liters,
+                    value: value,
+                    price_per_liter: pricePerLiter,
+                    mileage: mileage,
+                    mileage_difference: mileageDifference,
+                    record_type: 'fuel'
+                });
+
+                if (error) throw new Error(error);
+
+                showAlert(successAlert, 
+                    `✅ Combustible registrado | ${liters.toFixed(2)}L × $${pricePerLiter.toFixed(2)}/L = $${value.toFixed(2)} | Recorrido: ${mileageDifference} km`
+                );
+
+                fuelForm.reset();
+                document.getElementById('fuelDate').value = today;
+                
+                // Actualizar historial
+                loadRecords();
+
+            } catch (error) {
+                showAlert(errorAlert, `❌ Error al guardar: ${error.message}`, true);
+            } finally {
+                fuelSubmitBtn.innerHTML = originalText;
+                fuelSubmitBtn.disabled = false;
+            }
+        });
+
+        // 🛣️ MANEJAR FORMULARIO DE KILOMETRAJE
+        mileageForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (!isConnected) {
+                showAlert(errorAlert, '❌ No hay conexión con Neon. Configura primero.', true);
+                return;
+            }
+
+            const date = document.getElementById('mileageDate').value;
+            const mileage = parseInt(document.getElementById('mileageOnly').value);
+
+            if (!date || isNaN(mileage) || mileage <= 0) {
+                showAlert(errorAlert, 'Por favor, ingrese un kilometraje válido', true);
+                return;
+            }
+
+            const lastMileage = await getLastMileage();
+            const mileageDifference = lastMileage ? Math.max(0, mileage - lastMileage) : 0;
+
+            const mileageSubmitBtn = document.getElementById('mileageSubmitBtn');
+            const originalText = mileageSubmitBtn.innerHTML;
+            mileageSubmitBtn.innerHTML = '<div class="loading"></div>';
+            mileageSubmitBtn.disabled = true;
+
+            try {
+                const { data, error } = await insertRecord({
+                    date: date,
+                    liters: null,
+                    value: null,
+                    price_per_liter: null,
+                    mileage: mileage,
+                    mileage_difference: mileageDifference,
+                    record_type: 'mileage'
+                });
+
+                if (error) throw new Error(error);
+
+                showAlert(successAlert, 
+                    `✅ Kilometraje registrado | Total: ${mileage.toLocaleString()} km | Recorrido: ${mileageDifference} km`
+                );
+
+                mileageForm.reset();
+                document.getElementById('mileageDate').value = today;
+                
+                // Actualizar historial
+                loadRecords();
+
+            } catch (error) {
+                showAlert(errorAlert, `❌ Error al guardar: ${error.message}`, true);
+            } finally {
+                mileageSubmitBtn.innerHTML = originalText;
+                mileageSubmitBtn.disabled = false;
+            }
+        });
+
+        // 📊 CARGAR REGISTROS
+        async function loadRecords() {
+            if (!isConnected) return;
+
+            refreshBtn.innerHTML = '<div class="loading"></div>';
+            refreshBtn.disabled = true;
+
+            try {
+                const { data, error } = await getRecords();
+                
+                if (error) throw new Error(error);
+
+                recordsBody.innerHTML = '';
+
+                if (data.length === 0) {
+                    recordsBody.innerHTML = `
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 40px; color: var(--gray);">
+                                📭 No hay registros disponibles
+                                <p style="font-size: 0.9rem; margin-top: 10px;">
+                                    Agrega tu primer registro de combustible o kilometraje
+                                </p>
+                            </td>
+                        </tr>
+                    `;
+                    clearBtn.style.display = 'none';
+                    return;
+                }
+
+                clearBtn.style.display = 'block';
+
+                data.forEach(record => {
+                    const row = document.createElement('tr');
+                    
+                    const date = new Date(record.date);
+                    const formattedDate = date.toLocaleDateString('es-ES');
+                    
+                    const recordType = record.record_type === 'fuel' 
+                        ? '⛽ Combustible' 
+                        : '🛣️ Kilometraje';
+                    
+                    row.innerHTML = `
+                        <td>${formattedDate}</td>
+                        <td>${record.liters ? `${record.liters.toFixed(2)} L` : '–'}</td>
+                        <td>${record.value ? `$${record.value.toLocaleString('es-ES', {minimumFractionDigits: 2})}` : '–'}</td>
+                        <td>${record.price_per_liter ? `$${record.price_per_liter.toFixed(2)}` : '–'}</td>
+                        <td>${record.mileage.toLocaleString('es-ES')} km</td>
+                        <td>${record.mileage_difference ? `${record.mileage_difference} km` : '–'}</td>
+                        <td>${recordType}</td>
+                    `;
+                    
+                    recordsBody.appendChild(row);
+                });
+
+            } catch (error) {
+                console.error('Error cargando registros:', error);
+                showAlert(errorAlert, `❌ Error al cargar registros: ${error.message}`, true);
+            } finally {
+                refreshBtn.innerHTML = '🔄 Actualizar Historial';
+                refreshBtn.disabled = false;
+            }
+        }
+
+        // 📥 EXPORTAR A CSV
+        exportBtn.addEventListener('click', async () => {
+            if (!isConnected) {
+                showAlert(errorAlert, '❌ No hay conexión con Neon', true);
+                return;
+            }
+
+            try {
+                const { data, error } = await getRecords();
+                
+                if (error) throw new Error(error);
+                if (data.length === 0) {
+                    showAlert(errorAlert, 'No hay datos para exportar', true);
+                    return;
+                }
+
+                // Crear CSV
+                const headers = ['Fecha', 'Litros', 'Valor', 'Precio/L', 'Kilometraje', 'Diferencia KM', 'Tipo'];
+                const csvRows = [
+                    headers.join(','),
+                    ...data.map(record => [
+                        record.date,
+                        record.liters || '',
+                        record.value || '',
+                        record.price_per_liter || '',
+                        record.mileage,
+                        record.mileage_difference || '',
+                        record.record_type === 'fuel' ? 'Combustible' : 'Kilometraje'
+                    ].join(','))
+                ];
+
+                const csvContent = csvRows.join('\n');
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                
+                link.setAttribute('href', url);
+                link.setAttribute('download', `registro_combustible_${today}.csv`);
+                link.style.visibility = 'hidden';
+                
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                showAlert(successAlert, `✅ Exportado ${data.length} registros a CSV`);
+
+            } catch (error) {
+                showAlert(errorAlert, `❌ Error al exportar: ${error.message}`, true);
+            }
+        });
+
+        // 💾 GUARDAR CONFIGURACIÓN
+        saveConfigBtn.addEventListener('click', () => {
+            const neonUrl = document.getElementById('neonUrl').value.trim();
+            const neonKey = document.getElementById('neonKey').value.trim();
+            const tableName = document.getElementById('neonTable').value.trim();
+
+            if (!neonUrl || !neonKey || !tableName) {
+                showAlert(errorAlert, 'Por favor, complete todos los campos de configuración', true);
+                return;
+            }
+
+            if (!neonUrl.includes('/rest/v1')) {
+                showAlert(errorAlert, 'La URL debe terminar en /rest/v1', true);
+                return;
+            }
+
+            neonConfig = {
+                neonUrl: neonUrl,
+                neonKey: neonKey,
+                tableName: tableName
+            };
+
+            localStorage.setItem(CONFIG_STORAGE_KEY, JSON.stringify(neonConfig));
+            showAlert(successAlert, '✅ Configuración guardada correctamente');
+            
+            // Probar conexión automáticamente
+            setTimeout(() => {
+                initializeConnection();
+            }, 1000);
+        });
+
+        // 🧪 EVENTO DE PRUEBA DE CONEXIÓN
+        testConnectionBtn.addEventListener('click', () => {
+            const neonUrl = document.getElementById('neonUrl').value.trim();
+            const neonKey = document.getElementById('neonKey').value.trim();
+            const tableName = document.getElementById('neonTable').value.trim();
+
+            if (!neonUrl || !neonKey || !tableName) {
+                showAlert(errorAlert, 'Por favor, complete todos los campos de configuración', true);
+                return;
+            }
+
+            neonConfig = { neonUrl, neonKey, tableName };
+            testNeonConnection();
+        });
+
+        // 🔄 EVENTO DE ACTUALIZACIÓN
+        refreshBtn.addEventListener('click', loadRecords);
+
+        // 📋 CARGAR HISTORIAL AL CAMBIAR PESTAÑA
+        document.querySelector('[data-tab="records"]').addEventListener('click', () => {
+            if (isConnected) loadRecords();
+        });
+
+        // 🚀 INICIALIZAR APLICACIÓN
+        document.addEventListener('DOMContentLoaded', () => {
+            loadConfig();
+            
+            // Mostrar instrucciones en consola
+            console.log(`
+            🚀 APLICACIÓN DE REGISTRO DE COMBUSTIBLE - NEON
+            ================================================
+            
+            📋 INSTRUCCIONES PARA CONFIGURAR:
+            
+            1. Ve a https://neon.tech y crea un proyecto
+            2. En el dashboard, obtén tu connection string
+            3. Crea la tabla fuel_records:
+            
+            CREATE TABLE fuel_records (
+                id SERIAL PRIMARY KEY,
+                created_at TIMESTAMP DEFAULT NOW(),
+                date DATE NOT NULL,
+                liters DECIMAL(10,2),
+                value DECIMAL(10,2),
+                price_per_liter DECIMAL(10,2),
+                mileage INTEGER NOT NULL,
+                mileage_difference INTEGER,
+                record_type VARCHAR(20) NOT NULL
+            );
+            
+            4. Ve a Settings > API en tu dashboard de Neon
+            5. Obtén tu URL de API REST (termina en /rest/v1)
+            6. Genera una API Key con permisos de lectura/escritura
+            7. Ingresa estos datos en el panel de configuración
+            
+            ⚠️  IMPORTANTE: Esta aplicación funciona directamente con 
+            la API REST de Neon. No necesita backend adicional.
+            
+            🔒 SEGURIDAD: Tu API Key se almacena solo en tu navegador.
+            `);
+        });
+    </script>
+</body>
+</html>

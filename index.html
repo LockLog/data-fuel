@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Combustible</title>
+    <style>
+        :root {
+            --primary: #14b8a6;
+            --primary-dark: #0d9488;
+            --secondary: #8b5cf6;
+            --secondary-dark: #7c3aed;
+            --danger: #ef4444;
+            --danger-dark: #dc2626;
+            --warning: #f59e0b;
+            --warning-dark: #d97706;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --gray: #6c757d;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            border-top: 4px solid var(--primary);
+        }
+
+        h1 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        .description {
+            color: var(--gray);
+            font-size: 1.1rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(20, 184, 166, 0.2);
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 12px 20px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--secondary-dark);
+        }
+
+        .btn-warning {
+            background-color: var(--warning);
+        }
+
+        .btn-warning:hover {
+            background-color: var(--warning-dark);
+        }
+
+        .btn-danger {
+            background-color: var(--danger);
+        }
+
+        .btn-danger:hover {
+            background-color: var(--danger-dark);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn-group .btn {
+            flex: 1;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--gray);
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .alert {
+            padding: 12px 15px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert-success {
+            background-color: rgba(20, 184, 166, 0.1);
+            color: var(--primary-dark);
+            border: 1px solid var(--primary);
+        }
+
+        .alert-error {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--danger-dark);
+            border: 1px solid var(--danger);
+        }
+
+        .alert-warning {
+            background-color: rgba(245, 158, 11, 0.1);
+            color: var(--warning-dark);
+            border: 1px solid var(--warning);
+        }
+
+        .records-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .records-table th, .records-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .records-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+
+        .records-table tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .connection-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: var(--border-radius);
+            font-size: 14px;
+            margin-bottom: 15px;
+        }
+
+        .status-connected {
+            background-color: rgba(20, 184, 166, 0.1);
+            color: var(--primary-dark);
+            border: 1px solid var(--primary);
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .connected {
+            background-color: var(--secondary);
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .storage-info {
+            background-color: rgba(139, 92, 246, 0.1);
+            color: var(--secondary-dark);
+            border: 1px solid var(--secondary);
+            padding: 10px 15px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: var(--gray);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .tab {
+                border-bottom: none;
+                border-left: 3px solid transparent;
+            }
+            
+            .tab.active {
+                border-left-color: var(--primary);
+                border-bottom: none;
+            }
+            
+            .stats {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚗 Registro de Combustible</h1>
+            <p class="description">Sistema para registrar el consumo de combustible y kilometraje</p>
+        </header>
+
+        <div class="storage-info">
+            💾 <strong>Datos almacenados localmente</strong> - La información se guarda en tu navegador
+        </div>
+
+        <div class="card">
+            <div class="tabs">
+                <button class="tab active" data-tab="fuel">⛽ Registro de Combustible</button>
+                <button class="tab" data-tab="mileage">🛣️ Solo Kilometraje</button>
+                <button class="tab" data-tab="records">📋 Historial</button>
+                <button class="tab" data-tab="stats">📊 Estadísticas</button>
+            </div>
+
+            <!-- Alerts -->
+            <div id="successAlert" class="alert alert-success"></div>
+            <div id="errorAlert" class="alert alert-error"></div>
+
+            <!-- Fuel Registration Tab -->
+            <div id="fuelTab" class="tab-content active">
+                <form id="fuelForm">
+                    <div class="form-group">
+                        <label for="fuelDate">Fecha</label>
+                        <input type="date" id="fuelDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="liters">Litros</label>
+                        <input type="number" id="liters" step="0.01" min="0.1" placeholder="Ej: 45.50" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="value">Valor ($)</label>
+                        <input type="number" id="value" step="0.01" min="1" placeholder="Ej: 185000" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="fuelMileage">Kilometraje</label>
+                        <input type="number" id="fuelMileage" min="1" placeholder="Ej: 125000" required>
+                    </div>
+                    <div class="btn-group">
+                        <button type="submit" class="btn btn-secondary" id="fuelSubmitBtn">✅ Registrar Combustible</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Mileage Only Tab -->
+            <div id="mileageTab" class="tab-content">
+                <form id="mileageForm">
+                    <div class="form-group">
+                        <label for="mileageDate">Fecha</label>
+                        <input type="date" id="mileageDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="mileageOnly">Kilometraje</label>
+                        <input type="number" id="mileageOnly" min="1" placeholder="Ej: 125000" required>
+                    </div>
+                    <div class="btn-group">
+                        <button type="submit" class="btn" id="mileageSubmitBtn">✅ Registrar Kilometraje</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Records Tab -->
+            <div id="recordsTab" class="tab-content">
+                <div class="btn-group">
+                    <button id="refreshBtn" class="btn">🔄 Actualizar Historial</button>
+                    <button id="exportBtn" class="btn btn-warning">📥 Exportar CSV</button>
+                    <button id="clearAllBtn" class="btn btn-danger">🗑️ Borrar Todos</button>
+                </div>
+                <table class="records-table">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Litros</th>
+                            <th>Valor</th>
+                            <th>Precio/L</th>
+                            <th>Kilometraje</th>
+                            <th>Diferencia KM</th>
+                            <th>Tipo</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recordsBody">
+                        <!-- Los registros se cargarán aquí -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Statistics Tab -->
+            <div id="statsTab" class="tab-content">
+                <div class="stats" id="statsContainer">
+                    <!-- Las estadísticas se cargarán aquí -->
+                </div>
+                
+                <div class="btn-group">
+                    <button id="calculateStatsBtn" class="btn">📊 Calcular Estadísticas</button>
+                    <button id="backupBtn" class="btn btn-secondary">💾 Respaldar Datos</button>
+                    <button id="restoreBtn" class="btn btn-warning">🔄 Restaurar Datos</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 🔧 CONFIGURACIÓN
+        const LOCAL_STORAGE_KEY = 'fuel_records';
+        const BACKUP_STORAGE_KEY = 'fuel_records_backup';
+        
+        // 🎮 ELEMENTOS DEL DOM
+        const tabs = document.querySelectorAll('.tab');
+        const tabContents = document.querySelectorAll('.tab-content');
+        const fuelForm = document.getElementById('fuelForm');
+        const mileageForm = document.getElementById('mileageForm');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const exportBtn = document.getElementById('exportBtn');
+        const clearAllBtn = document.getElementById('clearAllBtn');
+        const calculateStatsBtn = document.getElementById('calculateStatsBtn');
+        const backupBtn = document.getElementById('backupBtn');
+        const restoreBtn = document.getElementById('restoreBtn');
+        const recordsBody = document.getElementById('recordsBody');
+        const statsContainer = document.getElementById('statsContainer');
+        const successAlert = document.getElementById('successAlert');
+        const errorAlert = document.getElementById('errorAlert');
+
+        // 📅 INICIALIZAR FECHAS
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('fuelDate').value = today;
+        document.getElementById('mileageDate').value = today;
+
+        // 🔄 MANEJO DE PESTAÑAS
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabId = tab.getAttribute('data-tab');
+                
+                tabs.forEach(t => t.classList.remove('active'));
+                tabContents.forEach(content => content.classList.remove('active'));
+                
+                tab.classList.add('active');
+                document.getElementById(`${tabId}Tab`).classList.add('active');
+                
+                if (tabId === 'records') {
+                    loadRecords();
+                } else if (tabId === 'stats') {
+                    calculateStatistics();
+                }
+            });
+        });
+
+        // 📝 MOSTRAR ALERTAS
+        function showAlert(alertElement, message, isError = false) {
+            alertElement.textContent = message;
+            alertElement.className = isError ? 'alert alert-error' : 'alert alert-success';
+            alertElement.style.display = 'block';
+            
+            setTimeout(() => {
+                alertElement.style.display = 'none';
+            }, 5000);
+        }
+
+        // 💾 FUNCIONES DE LOCALSTORAGE
+        function getRecordsFromStorage() {
+            const data = localStorage.getItem(LOCAL_STORAGE_KEY);
+            return data ? JSON.parse(data) : [];
+        }
+
+        function saveRecordToStorage(record) {
+            const records = getRecordsFromStorage();
+            record.id = Date.now(); // ID único basado en timestamp
+            record.created_at = new Date().toISOString();
+            records.unshift(record); // Agregar al inicio para orden descendente
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(records));
+            return record;
+        }
+
+        function deleteRecordFromStorage(id) {
+            const records = getRecordsFromStorage();
+            const filteredRecords = records.filter(record => record.id !== id);
+            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(filteredRecords));
+            return filteredRecords;
+        }
+
+        function clearAllRecords() {
+            localStorage.removeItem(LOCAL_STORAGE_KEY);
+            return [];
+        }
+
+        function backupData() {
+            const records = getRecordsFromStorage();
+            localStorage.setItem(BACKUP_STORAGE_KEY, JSON.stringify(records));
+            return records.length;
+        }
+
+        function restoreFromBackup() {
+            const backup = localStorage.getItem(BACKUP_STORAGE_KEY);
+            if (backup) {
+                localStorage.setItem(LOCAL_STORAGE_KEY, backup);
+                return JSON.parse(backup).length;
+            }
+            return 0;
+        }
+
+        // 🚗 OBTENER ÚLTIMO KILOMETRAJE
+        function getLastMileage() {
+            const records = getRecordsFromStorage();
+            if (records.length > 0) {
+                // Buscar el último registro con kilometraje
+                for (const record of records) {
+                    if (record.mileage) {
+                        return record.mileage;
+                    }
+                }
+            }
+            return null;
+        }
+
+        // 🚗 MANEJAR FORMULARIO DE COMBUSTIBLE
+        fuelForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const date = document.getElementById('fuelDate').value;
+            const liters = parseFloat(document.getElementById('liters').value);
+            const value = parseFloat(document.getElementById('value').value);
+            const mileage = parseInt(document.getElementById('fuelMileage').value);
+
+            // Validaciones
+            if (!date || isNaN(liters) || isNaN(value) || isNaN(mileage)) {
+                showAlert(errorAlert, 'Por favor, complete todos los campos correctamente', true);
+                return;
+            }
+
+            if (liters <= 0 || value <= 0 || mileage <= 0) {
+                showAlert(errorAlert, 'Los valores deben ser mayores a 0', true);
+                return;
+            }
+
+            const lastMileage = getLastMileage();
+            const mileageDifference = lastMileage ? Math.max(0, mileage - lastMileage) : 0;
+            const pricePerLiter = value / liters;
+
+            const fuelSubmitBtn = document.getElementById('fuelSubmitBtn');
+            const originalText = fuelSubmitBtn.innerHTML;
+            fuelSubmitBtn.innerHTML = '<div class="loading"></div>';
+            fuelSubmitBtn.disabled = true;
+
+            try {
+                const record = {
+                    date: date,
+                    liters: liters,
+                    value: value,
+                    price_per_liter: pricePerLiter,
+                    mileage: mileage,
+                    mileage_difference: mileageDifference,
+                    record_type: 'fuel'
+                };
+
+                // Guardar en localStorage
+                saveRecordToStorage(record);
+
+                showAlert(successAlert, 
+                    `✅ Combustible registrado | ${liters.toFixed(2)}L × $${pricePerLiter.toFixed(2)}/L = $${value.toFixed(2)} | Recorrido: ${mileageDifference} km`
+                );
+
+                // Limpiar formulario
+                fuelForm.reset();
+                document.getElementById('fuelDate').value = today;
+                
+                // Si estamos en la pestaña de historial, actualizar
+                if (document.querySelector('[data-tab="records"]').classList.contains('active')) {
+                    loadRecords();
+                }
+
+            } catch (error) {
+                showAlert(errorAlert, `❌ Error al guardar: ${error.message}`, true);
+            } finally {
+                fuelSubmitBtn.innerHTML = originalText;
+                fuelSubmitBtn.disabled = false;
+            }
+        });
+
+        // 🛣️ MANEJAR FORMULARIO DE KILOMETRAJE
+        mileageForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const date = document.getElementById('mileageDate').value;
+            const mileage = parseInt(document.getElementById('mileageOnly').value);
+
+            // Validaciones
+            if (!date || isNaN(mileage) || mileage <= 0) {
+                showAlert(errorAlert, 'Por favor, ingrese un kilometraje válido', true);
+                return;
+            }
+
+            const lastMileage = getLastMileage();
+            const mileageDifference = lastMileage ? Math.max(0, mileage - lastMileage) : 0;
+
+            const mileageSubmitBtn = document.getElementById('mileageSubmitBtn');
+            const originalText = mileageSubmitBtn.innerHTML;
+            mileageSubmitBtn.innerHTML = '<div class="loading"></div>';
+            mileageSubmitBtn.disabled = true;
+
+            try {
+                const record = {
+                    date: date,
+                    liters: null,
+                    value: null,
+                    price_per_liter: null,
+                    mileage: mileage,
+                    mileage_difference: mileageDifference,
+                    record_type: 'mileage'
+                };
+
+                // Guardar en localStorage
+                saveRecordToStorage(record);
+
+                showAlert(successAlert, 
+                    `✅ Kilometraje registrado | Total: ${mileage.toLocaleString()} km | Recorrido: ${mileageDifference} km`
+                );
+
+                // Limpiar formulario
+                mileageForm.reset();
+                document.getElementById('mileageDate').value = today;
+                
+                // Si estamos en la pestaña de historial, actualizar
+                if (document.querySelector('[data-tab="records"]').classList.contains('active')) {
+                    loadRecords();
+                }
+
+            } catch (error) {
+                showAlert(errorAlert, `❌ Error al guardar: ${error.message}`, true);
+            } finally {
+                mileageSubmitBtn.innerHTML = originalText;
+                mileageSubmitBtn.disabled = false;
+            }
+        });
+
+        // 📊 CARGAR REGISTROS
+        function loadRecords() {
+            refreshBtn.innerHTML = '<div class="loading"></div>';
+            refreshBtn.disabled = true;
+
+            try {
+                const records = getRecordsFromStorage();
+                
+                recordsBody.innerHTML = '';
+
+                if (records.length === 0) {
+                    recordsBody.innerHTML = `
+                        <tr>
+                            <td colspan="8" style="text-align: center; padding: 40px; color: var(--gray);">
+                                📭 No hay registros disponibles
+                                <p style="font-size: 0.9rem; margin-top: 10px;">
+                                    Agrega tu primer registro de combustible o kilometraje
+                                </p>
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                records.forEach(record => {
+                    const row = document.createElement('tr');
+                    
+                    const date = new Date(record.date);
+                    const formattedDate = date.toLocaleDateString('es-ES');
+                    
+                    const recordType = record.record_type === 'fuel' 
+                        ? '⛽ Combustible' 
+                        : '🛣️ Kilometraje';
+                    
+                    row.innerHTML = `
+                        <td>${formattedDate}</td>
+                        <td>${record.liters ? `${record.liters.toFixed(2)} L` : '–'}</td>
+                        <td>${record.value ? `$${record.value.toLocaleString('es-ES', {minimumFractionDigits: 2})}` : '–'}</td>
+                        <td>${record.price_per_liter ? `$${record.price_per_liter.toFixed(2)}` : '–'}</td>
+                        <td>${record.mileage.toLocaleString('es-ES')} km</td>
+                        <td>${record.mileage_difference ? `${record.mileage_difference} km` : '–'}</td>
+                        <td>${recordType}</td>
+                        <td>
+                            <button onclick="deleteRecord(${record.id})" class="btn btn-danger" style="padding: 5px 10px; font-size: 12px;">
+                                🗑️
+                            </button>
+                        </td>
+                    `;
+                    
+                    recordsBody.appendChild(row);
+                });
+
+            } catch (error) {
+                console.error('Error cargando registros:', error);
+                showAlert(errorAlert, `❌ Error al cargar registros: ${error.message}`, true);
+            } finally {
+                refreshBtn.innerHTML = '🔄 Actualizar Historial';
+                refreshBtn.disabled = false;
+            }
+        }
+
+        // 📊 CALCULAR ESTADÍSTICAS
+        function calculateStatistics() {
+            calculateStatsBtn.innerHTML = '<div class="loading"></div>';
+            calculateStatsBtn.disabled = true;
+
+            try {
+                const records = getRecordsFromStorage();
+                const fuelRecords = records.filter(r => r.record_type === 'fuel');
+                const mileageRecords = records.filter(r => r.record_type === 'mileage');
+                
+                // Estadísticas de combustible
+                let totalLiters = 0;
+                let totalValue = 0;
+                let avgPricePerLiter = 0;
+                let totalKm = 0;
+                
+                fuelRecords.forEach(record => {
+                    totalLiters += record.liters || 0;
+                    totalValue += record.value || 0;
+                    totalKm += record.mileage_difference || 0;
+                });
+                
+                if (totalLiters > 0) {
+                    avgPricePerLiter = totalValue / totalLiters;
+                }
+                
+                // Último kilometraje
+                const lastRecord = records.length > 0 ? records[0] : null;
+                const lastMileage = lastRecord ? lastRecord.mileage : 0;
+                
+                // Total registros
+                const totalRecords = records.length;
+                
+                // Renderizar estadísticas
+                statsContainer.innerHTML = `
+                    <div class="stat-item">
+                        <div class="stat-value">${totalRecords}</div>
+                        <div class="stat-label">Total Registros</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">${fuelRecords.length}</div>
+                        <div class="stat-label">Cargas Combustible</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">${totalLiters.toFixed(1)}</div>
+                        <div class="stat-label">Litros Totales</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">$${avgPricePerLiter.toFixed(2)}</div>
+                        <div class="stat-label">Precio Promedio/L</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">${totalKm}</div>
+                        <div class="stat-label">Kilómetros Recorridos</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">${lastMileage.toLocaleString()}</div>
+                        <div class="stat-label">Último Kilometraje</div>
+                    </div>
+                `;
+
+            } catch (error) {
+                console.error('Error calculando estadísticas:', error);
+                showAlert(errorAlert, `❌ Error calculando estadísticas: ${error.message}`, true);
+            } finally {
+                calculateStatsBtn.innerHTML = '📊 Calcular Estadísticas';
+                calculateStatsBtn.disabled = false;
+            }
+        }
+
+        // 🗑️ ELIMINAR REGISTRO (disponible globalmente)
+        window.deleteRecord = function(id) {
+            if (!confirm('¿Estás seguro de eliminar este registro?')) return;
+            
+            try {
+                deleteRecordFromStorage(id);
+                showAlert(successAlert, '✅ Registro eliminado');
+                loadRecords();
+            } catch (error) {
+                showAlert(errorAlert, '❌ Error eliminando registro', true);
+            }
+        };
+
+        // 🗑️ BORRAR TODOS LOS REGISTROS
+        clearAllBtn.addEventListener('click', () => {
+            if (!confirm('⚠️ ¿Estás SEGURO de borrar TODOS los registros?\nEsta acción NO se puede deshacer.')) return;
+            
+            try {
+                const count = getRecordsFromStorage().length;
+                clearAllRecords();
+                showAlert(successAlert, `✅ Se eliminaron ${count} registros`);
+                loadRecords();
+            } catch (error) {
+                showAlert(errorAlert, '❌ Error borrando registros', true);
+            }
+        });
+
+        // 📥 EXPORTAR A CSV
+        exportBtn.addEventListener('click', () => {
+            try {
+                const records = getRecordsFromStorage();
+                
+                if (records.length === 0) {
+                    showAlert(errorAlert, 'No hay datos para exportar', true);
+                    return;
+                }
+
+                const headers = ['Fecha', 'Litros', 'Valor', 'Precio/L', 'Kilometraje', 'Diferencia KM', 'Tipo'];
+                const csvRows = [
+                    headers.join(','),
+                    ...records.map(record => [
+                        record.date,
+                        record.liters || '',
+                        record.value || '',
+                        record.price_per_liter || '',
+                        record.mileage,
+                        record.mileage_difference || '',
+                        record.record_type === 'fuel' ? 'Combustible' : 'Kilometraje'
+                    ].join(','))
+                ];
+
+                const csvContent = csvRows.join('\n');
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+                
+                link.setAttribute('href', url);
+                link.setAttribute('download', `registro_combustible_${today}.csv`);
+                link.style.visibility = 'hidden';
+                
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                showAlert(successAlert, `✅ Exportado ${records.length} registros a CSV`);
+
+            } catch (error) {
+                showAlert(errorAlert, `❌ Error al exportar: ${error.message}`, true);
+            }
+        });
+
+        // 💾 RESPALDAR DATOS
+        backupBtn.addEventListener('click', () => {
+            try {
+                const count = backupData();
+                showAlert(successAlert, `✅ Respaldados ${count} registros correctamente`);
+            } catch (error) {
+                showAlert(errorAlert, '❌ Error al respaldar datos', true);
+            }
+        });
+
+        // 🔄 RESTAURAR DATOS
+        restoreBtn.addEventListener('click', () => {
+            if (!confirm('¿Restaurar datos desde el respaldo? Esto sobrescribirá los datos actuales.')) return;
+            
+            try {
+                const count = restoreFromBackup();
+                if (count > 0) {
+                    showAlert(successAlert, `✅ Restaurados ${count} registros desde el respaldo`);
+                    loadRecords();
+                } else {
+                    showAlert(errorAlert, 'No hay respaldo disponible', true);
+                }
+            } catch (error) {
+                showAlert(errorAlert, '❌ Error al restaurar datos', true);
+            }
+        });
+
+        // 🚀 INICIALIZAR APLICACIÓN
+        document.addEventListener('DOMContentLoaded', () => {
+            // Event listeners
+            refreshBtn.addEventListener('click', loadRecords);
+            calculateStatsBtn.addEventListener('click', calculateStatistics);
+            
+            // Cargar registros iniciales
+            loadRecords();
+            
+            console.log(`
+            🚀 APLICACIÓN DE REGISTRO DE COMBUSTIBLE
+            =========================================
+            
+            📋 CARACTERÍSTICAS:
+            • 💾 Datos almacenados en localStorage
+            • 📱 Funciona completamente offline
+            • 📊 Estadísticas automáticas
+            • 📥 Exportación a CSV
+            • 💾 Sistema de respaldo/restauración
+            
+            🔧 FUNCIONALIDADES:
+            1. ⛽ Registrar combustible completo
+            2. 🛣️ Registrar solo kilometraje
+            3. 📋 Ver historial completo
+            4. 🗑️ Eliminar registros individuales
+            5. 📊 Ver estadísticas
+            6. 📥 Exportar a CSV
+            7. 💾 Respaldar/Restaurar datos
+            
+            ⚠️ IMPORTANTE:
+            • Los datos se guardan SOLO en tu navegador
+            • Si limpias el cache del navegador, perderás los datos
+            • Exporta regularmente a CSV para tener respaldo
+            
+            ✅ La aplicación está lista para usar inmediatamente
+            `);
+        });
+    </script>
+</body>
+</html>

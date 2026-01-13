@@ -493,7 +493,7 @@
             
             setTimeout(() => {
                 alertElement.style.display = 'none';
-            }, 5000);
+            }, 8000);
         }
 
         // 💾 FUNCIONES DE LOCALSTORAGE
@@ -652,7 +652,7 @@
 //                saveRecordToStorage(record);
 
                 showAlert(successAlert, 
-                    `✅ Kilometraje registrado | Total: ${mileage.toLocaleString()} km | Recorrido: ${mileageDifference} km`
+                    `✅ Kilometraje registrado (Actual: ${mileageDifference} km | Anterior: ${mileage.toLocaleString()} km)`
                 );
 
                 // Limpiar formulario

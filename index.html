@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -552,6 +553,21 @@
             return null;
         }
 
+// 🚗 OBTENER ÚLTIMO KILOMETRAJE
+        function getLastMileageDifference() {
+            const records = getRecordsFromStorage();
+            if (records.length > 0) {
+                // Buscar el último registro con kilometraje
+                for (const record of records) {
+                    if (record.mileage_difference) {
+                        return record.mileage_difference;
+                    }
+                }
+            }
+            return null;
+        }
+
+        
         // 🚗 MANEJAR FORMULARIO DE COMBUSTIBLE
         fuelForm.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -622,7 +638,8 @@
             
             const date = document.getElementById('mileageDate').value;
             const mileage = parseInt(document.getElementById('mileageOnly').value);
-
+            const lastMileageDifference = getLastMileageDifference();
+            
             // Validaciones
             if (!date || isNaN(mileage) || mileage <= 0) {
                 showAlert(errorAlert, 'Por favor, ingrese un kilometraje válido', true);
@@ -651,11 +668,9 @@
                 // Guardar en localStorage
 //                saveRecordToStorage(record);
 
-                showAlert(successAlert, 
-                    `✅ Kilometraje Actual: ${mileageDifference} km | Anterior: ${mileage.toLocaleString()} km`
-                );
+                
                 showAlert(successAlert,
-                `✅ Kilometraje registrado | Total: ${mileage.toLocaleString()} km | Recorrido: ${mileageDifference} km`);
+                `✅ Kilometraje registrado | Total: ${lastMileageDifference.toLocaleString()} km | Recorrido: ${mileageDifference} km`);
 
                 // Limpiar formulario
                 mileageForm.reset();

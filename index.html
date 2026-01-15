@@ -654,6 +654,8 @@
                 showAlert(successAlert, 
                     `✅ Kilometraje Actual: ${mileageDifference} km | Anterior: ${mileage.toLocaleString()} km`
                 );
+                showAlert(successAlert,
+                `✅ Kilometraje registrado | Total: ${mileage.toLocaleString()} km | Recorrido: ${mileageDifference} km`);
 
                 // Limpiar formulario
                 mileageForm.reset();
